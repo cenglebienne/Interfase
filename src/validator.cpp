@@ -16,21 +16,21 @@ void IRAM_ATTR isr_validador() {
   bool     estado = (bool)digitalRead(PIN_VALIDATOR_IN);
   uint32_t ahora  = (uint32_t)millis();
 
+  // true cuando el pin está en el nivel que se considera "activo".
+  bool inputActivo = s_activoAlto ? estado : !estado;
+
   if (s_modoEspejo) {
     // Modo espejo: la salida sigue a la entrada en tiempo real.
-    // inputActivo=true → output activo; false → output inactivo.
-    // outLevel = 1 cuando (inputActivo == s_salidaActivoAlto).
-    bool inputActivo = !estado;  // entrada activa en bajo
     gpio_set_level((gpio_num_t)PIN_VMC_OUT,
                    (inputActivo == s_salidaActivoAlto) ? 1 : 0);
 
-    // Medir duración para aprendizaje y conteo.
+    // Medir duración para conteo (en ms; pulsos sub-ms quedan en 0 ms).
     if (inputActivo) {
       s_inicioMs = ahora;
       s_enPulso  = true;
     } else if (s_enPulso) {
       uint32_t dur = ahora - s_inicioMs;
-      if (dur >= 100 && dur <= 550) {
+      if (dur >= s_minDurMs && dur <= s_maxDurMs) {
         pulseDuration = dur;
         g_cospelIn    = true;
       }
@@ -40,12 +40,12 @@ void IRAM_ATTR isr_validador() {
   }
 
   // Modo normal: detectar pulso válido y señalizar al loop principal.
-  if (!estado) {
+  if (inputActivo) {
     s_inicioMs = ahora;
     s_enPulso  = true;
   } else if (s_enPulso) {
     uint32_t dur = ahora - s_inicioMs;
-    if (dur >= 100 && dur <= 550) {
+    if (dur >= s_minDurMs && dur <= s_maxDurMs) {
       pulseDuration = dur;
       g_cospelIn    = true;
     }

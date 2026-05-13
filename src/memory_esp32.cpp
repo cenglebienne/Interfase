@@ -191,8 +191,10 @@ void Storage_Bootstrap() {
     Serial.println("Duracion salida: " + String(Misvalores.Salida_Duracion_ms));
     Serial.println("Modo de uso: " + String(Misvalores.Modo_Timer ? "Temporizador" : "Interface"));
     Misvalores.Entrada_Activo_Alto ? Serial.println("Pulso de entrada: Activo Alto") : Serial.println("Pulso de entrada: Activo Bajo");
-    
-}
+    Misvalores.Salida_Activo_Alto ? Serial.println("Pulso de salida: Activo Alto") : Serial.println("Pulso de salida: Activo Bajo");
+    Misvalores.Modo_Espejo ? Serial.println("Modo Espejo: Activado") : Serial.println("Modo Espejo: Desactivado");
+
+    }
 
 // ── Implementación de boot_load_config (corre antes de Storage_Bootstrap) ─────
 bool boot_load_config(Config &out) {
