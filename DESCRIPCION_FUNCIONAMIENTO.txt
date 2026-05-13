@@ -1,0 +1,260 @@
+================================================================================
+  INTERFACE VENDING — DESCRIPCIÓN DE FUNCIONAMIENTO
+================================================================================
+
+¿Qué es este dispositivo?
+--------------------------
+El Interface Vending es una placa electrónica que actúa como intermediario
+entre un validador de fichas o monedas y una máquina expendedora (VMC).
+Su función principal es recibir la señal de que se ingresó una ficha —o que
+se realizó un pago online— y avisarle a la máquina expendedora que debe
+entregar un servicio.
+
+Además de manejar fichas físicas, el dispositivo se conecta a internet por
+Wi-Fi y escucha órdenes de un servidor central (MQTT). Esto permite autorizar
+servicios de forma remota, sin necesidad de insertar una ficha.
+
+--------------------------------------------------------------------------------
+
+MODOS DE OPERACIÓN
+------------------
+
+El dispositivo puede trabajar de dos maneras distintas. Cuál usar se configura
+desde el panel de administración:
+
+1. MODO INTERFACE (modo 0)
+   La placa "traduce" la señal de la ficha: cuando el validador detecta una
+   ficha válida, mide cuánto dura esa señal y luego genera una señal idéntica
+   hacia la máquina expendedora. La duración del pulso que se envía a la
+   máquina es aprendida de fichas reales (ver sección "Modo Aprendizaje").
+
+2. MODO TEMPORIZADOR (modo 1)
+   Se utiliza cuando NO existe una VMC. En lugar de comunicarse con una
+   máquina expendedora, la placa habilita directamente el mecanismo de
+   servicio (aspiradora, acceso a baños, TV, etc.) mediante un pulso cuya
+   duración es configurable por el administrador en segundos.
+   La señal de salida se genera en un pin independiente (PIN_TIMER_OUT),
+   separado del usado en modo Interface.
+
+--------------------------------------------------------------------------------
+
+CÓMO FUNCIONA CON FICHAS FÍSICAS
+----------------------------------
+
+Cuando alguien introduce una ficha en el validador:
+
+  1. El validador genera una señal eléctrica (pulso) de corta duración.
+  2. La placa detecta ese pulso y verifica que tenga una duración razonable
+     (ni demasiado corto para ignorar ruido, ni demasiado largo para ignorar
+     errores). Si el pulso es válido, cuenta como una ficha aceptada.
+  3. La placa avisa a la máquina expendedora replicando ese pulso en su salida.
+  4. La máquina expendedora entrega el servicio.
+  5. El contador de fichas se actualiza y se guarda en la memoria del
+     dispositivo, por lo que los datos persisten aunque se corte la luz.
+
+Si la máquina expendedora está bloqueada (por ejemplo, está ocupada o fue
+deshabilitada desde la propia VMC), la ficha se ignora y no se entrega
+ningún servicio para evitar dobles activaciones.
+
+--------------------------------------------------------------------------------
+
+CÓMO FUNCIONA CON PAGOS ONLINE
+--------------------------------
+
+Cuando alguien paga por medios electrónicos (QR, app, etc.), el servidor
+central envía una orden al dispositivo a través de internet. Al recibirla:
+
+  1. La placa verifica que la máquina no esté ocupada entregando otro servicio.
+  2. Si está libre, genera el mismo tipo de señal que generaría una ficha
+     física, usando la duración aprendida (modo Interface). En modo
+     Temporizador el pulso habilita directamente el mecanismo por el
+     tiempo configurado, sin intervención de una VMC.
+  3. La máquina expendedora entrega el servicio exactamente igual que si
+     alguien hubiera puesto una ficha.
+  4. El contador de pagos online se incrementa y se guarda.
+  5. El servidor recibe confirmación de que el pago fue procesado.
+
+Si la máquina está ocupada cuando llega el pago, este se cancela y el
+servidor es notificado para que tome las acciones correspondientes (por
+ejemplo, devolver el dinero).
+
+--------------------------------------------------------------------------------
+
+SERVICIOS DE CORTESÍA
+----------------------
+
+El administrador puede otorgar un servicio gratuito enviando una orden desde
+el servidor, sin costo para el usuario. El comportamiento es idéntico al pago
+online pero queda registrado como "cortesía" en los contadores. Esto sirve
+para situaciones como promociones, compensaciones o servicios de prueba.
+
+--------------------------------------------------------------------------------
+
+CONTROL DE HABILITACIÓN POR LA VMC
+------------------------------------
+
+Aplica únicamente en MODO INTERFACE. La máquina expendedora puede indicarle
+al Interface Vending si está lista para recibir órdenes o si debe ignorar
+todo. Esta comunicación es constante y bidireccional:
+
+- Cuando la VMC habilita la máquina, el dispositivo acepta fichas y pagos.
+- Cuando la VMC deshabilita la máquina (por ejemplo, porque está haciendo
+  mantenimiento o ya entregó el servicio), el dispositivo descarta cualquier
+  evento hasta que la VMC vuelva a habilitar.
+
+Esto evita que la máquina entregue dobles servicios por error.
+
+En MODO TEMPORIZADOR no existe VMC: el dispositivo no monitorea ninguna
+señal de habilitación externa y gestiona el estado de ocupado internamente.
+
+--------------------------------------------------------------------------------
+
+EL LED INDICADOR
+-----------------
+
+Un LED en la placa informa visualmente el estado del dispositivo en todo
+momento:
+
+  PARPADEO RÁPIDO (cada 100 ms)
+    El dispositivo está en modo aprendizaje esperando que se inserte una
+    ficha para memorizar la duración del pulso.
+
+  PARPADEO LENTO (cada 500 ms)
+    El dispositivo está en modo punto de acceso Wi-Fi (Access Point).
+    Desde otro dispositivo se puede conectar a su red para configurarlo.
+
+  LUZ FIJA ENCENDIDA
+    El dispositivo está conectado correctamente al servidor MQTT y listo
+    para recibir pagos online.
+
+  LUZ APAGADA
+    El dispositivo no está conectado al servidor. Puede estar iniciando,
+    buscando red Wi-Fi, o haber perdido la conexión. Las fichas físicas
+    siguen funcionando.
+
+--------------------------------------------------------------------------------
+
+EL PULSADOR
+------------
+
+El dispositivo tiene un botón físico con dos funciones según cuánto tiempo
+se lo mantenga presionado durante el funcionamiento normal:
+
+  PULSACIÓN CORTA (menos de 3 segundos)
+    Reinicia el dispositivo. Equivale a cortar y reponer la alimentación.
+    Útil cuando el dispositivo se comporta de manera inesperada.
+
+  PULSACIÓN LARGA (3 segundos o más)
+    Reinicia el dispositivo y lo pone en modo punto de acceso Wi-Fi. Al
+    arrancar en este modo, el LED parpadea lentamente y el dispositivo
+    crea su propia red Wi-Fi a la que se puede conectar para configurarlo
+    desde un navegador. El modo Access Point se desactiva solo después de
+    5 minutos y el dispositivo reinicia en modo normal.
+
+--------------------------------------------------------------------------------
+
+MODO APRENDIZAJE DE DURACIÓN DE PULSO
+---------------------------------------
+
+Para que el Interface Vending sepa exactamente cuánto dura la señal de una
+ficha real —y así poder replicarla correctamente ante pagos online— existe
+un procedimiento especial de calibración:
+
+  CÓMO ACTIVARLO:
+    Al encender (o reiniciar) el dispositivo, mantener presionado el botón
+    durante al menos 5 segundos. Durante ese tiempo el LED parpadeará
+    rápidamente indicando que se está esperando la confirmación.
+    Si se suelta el botón antes de los 5 segundos, el dispositivo arranca
+    normalmente sin entrar en modo aprendizaje.
+
+  QUÉ HACE EL DISPOSITIVO EN ESTE MODO:
+    Una vez activado, el LED continúa parpadeando rápidamente. El dispositivo
+    espera que se inserte una ficha real en el validador. Cuando esto ocurre,
+    mide con precisión la duración de la señal generada por esa ficha y guarda
+    ese valor en su memoria permanente, sobreescribiendo cualquier valor
+    anterior. Inmediatamente después sale del modo aprendizaje y vuelve al
+    funcionamiento normal.
+
+  POR QUÉ ES NECESARIO:
+    El validador de fichas y la máquina expendedora de cada instalación pueden
+    trabajar con pulsos de distinta duración. Aprender el valor real de cada
+    instalación garantiza que los pagos online generen exactamente la misma
+    señal que una ficha física, haciendo que la VMC los trate de forma
+    idéntica.
+
+  VALOR POR DEFECTO:
+    Si nunca se realizó el aprendizaje, el dispositivo usa un valor de
+    duración configurado desde el panel de administración. Esto permite
+    que funcione desde el primer uso aunque no se haya calibrado aún.
+
+--------------------------------------------------------------------------------
+
+CONFIGURACIÓN Y ADMINISTRACIÓN
+--------------------------------
+
+El dispositivo dispone de dos canales de administración:
+
+  PANEL WEB (acceso local)
+    Conectándose a la red Wi-Fi del dispositivo (cuando está en modo Access
+    Point) o a la misma red local, se puede acceder desde cualquier
+    navegador a un panel de configuración donde se ajustan parámetros como:
+    - Credenciales de la red Wi-Fi
+    - Dirección del servidor MQTT
+    - Modo de operación (Interface o Temporizador)
+    - Duración del pulso de salida
+    - Lógica de los pulsos (activo alto o activo bajo)
+    - Tiempo de activación en modo Temporizador
+
+  SERVIDOR MQTT (acceso remoto)
+    Desde el servidor central se puede:
+    - Enviar pagos online o servicios de cortesía
+    - Consultar contadores y estado del dispositivo
+    - Solicitar que el dispositivo entre en modo Access Point para
+      reconfiguración remota
+    - Solicitar actualizaciones de firmware o configuración
+    - Recibir el registro de eventos del dispositivo por FTP
+
+--------------------------------------------------------------------------------
+
+REGISTRO DE EVENTOS Y CONTADORES
+----------------------------------
+
+El dispositivo lleva un registro interno de todo lo que ocurre: fichas
+detectadas, pagos online, servicios de cortesía, conexiones y desconexiones,
+habilitaciones de la VMC, etc. Este registro puede enviarse automáticamente
+al servidor por FTP ante una orden remota.
+
+Los contadores se dividen en:
+- Contadores parciales: se pueden reiniciar para llevar el control diario
+  o por período.
+- Contadores totales: acumulan todo desde el inicio y nunca se resetean.
+
+Ambos tipos se guardan en la memoria permanente del dispositivo, por lo que
+no se pierden ante un corte de energía o un reinicio.
+
+--------------------------------------------------------------------------------
+
+COMPORTAMIENTO ANTE PROBLEMAS DE CONEXIÓN
+-------------------------------------------
+
+Si el dispositivo pierde la conexión Wi-Fi o con el servidor MQTT, sigue
+funcionando normalmente para las fichas físicas. Los pagos online simplemente
+no pueden procesarse mientras no haya conexión. El dispositivo intenta
+reconectarse automáticamente de forma periódica sin necesidad de intervención.
+
+--------------------------------------------------------------------------------
+
+RESUMEN RÁPIDO DE ESTADOS
+---------------------------
+
+  LED apagado         → Sin conexión al servidor, fichas físicas OK
+  LED encendido fijo  → Conectado al servidor, todo operativo
+  LED parpadeo lento  → En modo configuración (Access Point Wi-Fi)
+  LED parpadeo rápido → En modo aprendizaje, esperando ficha de calibración
+
+  Botón < 3 s         → Reinicio normal
+  Botón ≥ 3 s         → Reinicio + entra en modo Access Point
+  Botón al encender
+    + mantener 5 s    → Entra en modo aprendizaje de duración de pulso
+
+================================================================================

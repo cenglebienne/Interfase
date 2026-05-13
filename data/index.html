@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Interface Vending</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --primary:       #1a73e8;
+      --primary-dark:  #1557b0;
+      --bg:            #f0f4f8;
+      --surface:       #ffffff;
+      --text:          #202124;
+      --text-muted:    #5f6368;
+      --border:        #dadce0;
+      --yes:           #e6f4ea;
+      --yes-text:      #137333;
+      --no:            #fce8e6;
+      --no-text:       #c5221f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+           background: var(--bg); color: var(--text); }
+
+    /* ── Header ── */
+    .app-header { background: var(--primary); padding: 14px 24px;
+                  box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+    .app-header h1 { color: #fff; font-size: 1.3rem; font-weight: 500; letter-spacing: .4px; }
+
+    /* ── Navbar ── */
+    .nav-bar { background: var(--surface); border-bottom: 1px solid var(--border);
+               display: flex; flex-wrap: wrap; padding: 0 8px;
+               box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .nav-btn { padding: 13px 15px; border: none; background: transparent;
+               color: var(--text-muted); font-size: .85rem; font-weight: 500;
+               cursor: pointer; border-bottom: 3px solid transparent; transition: all .18s; }
+    .nav-btn:hover { color: var(--primary); background: rgba(26,115,232,.05); }
+    .nav-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    /* ── Tab wrapper ── */
+    .tabContent { display: none; }
+    .tab-wrap { max-width: 680px; margin: 0 auto; padding: 24px 16px; }
+
+    /* ── Card ── */
+    .card { background: var(--surface); border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.1); padding: 20px 22px; margin-bottom: 20px; }
+    .card-title { font-size: .95rem; font-weight: 600; color: var(--text);
+                  padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+
+    /* ── Tables (info) ── */
+    .info-table { width: 100%; border-collapse: collapse; }
+    .info-table td { padding: 9px 10px; font-size: .88rem; border-bottom: 1px solid var(--border); }
+    .info-table td:first-child { color: var(--text-muted); width: 55%; }
+    .info-table tr:last-child td { border-bottom: none; }
+    .info-table tr:hover td { background: rgba(26,115,232,.04); }
+
+    /* ── Config table (valores) ── */
+    .cfg-table { width: 100%; border-collapse: collapse; }
+    .cfg-table th { text-align: left; font-size: .75rem; font-weight: 600;
+                    text-transform: uppercase; letter-spacing: .5px;
+                    color: var(--text-muted); padding: 8px 10px;
+                    border-bottom: 2px solid var(--border); }
+    .cfg-table td { padding: 10px 10px; font-size: .88rem;
+                    border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .cfg-table tr:last-child td { border-bottom: none; }
+    .cfg-table tr:hover td { background: rgba(26,115,232,.04); }
+    .cfg-table td:last-child { text-align: right; }
+
+    /* ── Badge ── */
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 12px;
+             font-size: .75rem; font-weight: 600; }
+    .badge-yes { background: var(--yes); color: var(--yes-text); }
+    .badge-no  { background: var(--no);  color: var(--no-text);  }
+
+    /* ── Toggle switch ── */
+    .toggle { position: relative; display: inline-block; width: 42px; height: 22px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .t-slider { position: absolute; inset: 0; background: #ccc;
+                border-radius: 22px; cursor: pointer; transition: .2s; }
+    .t-slider:before { content: ''; position: absolute; width: 16px; height: 16px;
+                       left: 3px; bottom: 3px; background: #fff; border-radius: 50%;
+                       transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+    .toggle input:checked + .t-slider { background: var(--primary); }
+    .toggle input:checked + .t-slider:before { transform: translateX(20px); }
+
+    /* ── Inputs ── */
+    .inp { border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px;
+           font-size: .88rem; transition: border-color .18s; outline: none; width: 100%; }
+    .inp:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,115,232,.15); }
+    .inp-num { width: 80px; text-align: center; }
+
+    /* ── Buttons ── */
+    .btn { padding: 8px 20px; border: none; border-radius: 6px; font-size: .875rem;
+           font-weight: 500; cursor: pointer; transition: all .18s; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); box-shadow: 0 2px 6px rgba(26,115,232,.4); }
+    .btn-secondary { background: transparent; color: var(--primary); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: rgba(26,115,232,.06); }
+    .btn-danger { background: #ea4335; color: #fff; font-size: 1rem; padding: 12px 36px; }
+    .btn-danger:hover { background: #c5221f; box-shadow: 0 3px 8px rgba(234,67,53,.4); }
+    .btn-row { display: flex; gap: 8px; justify-content: flex-end;
+               margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+    /* ── Form groups ── */
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: .82rem; font-weight: 500;
+                  color: var(--text-muted); margin-bottom: 5px; }
+
+    /* ── Segmented control (selector de modo) ── */
+    .seg-ctrl { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 4px; }
+    .seg-btn { flex: 1; padding: 10px 0; border: none; background: transparent;
+               cursor: pointer; font-size: .88rem; font-weight: 500;
+               color: var(--text-muted); transition: all .18s; }
+    .seg-btn.active { background: var(--primary); color: #fff; }
+    .seg-btn:not(.active):hover { background: rgba(26,115,232,.06); color: var(--primary); }
+
+    /* ── Label toggle Bajo / Alto ── */
+    .lt-chk { display: none; }
+    .label-toggle { display: inline-flex; position: relative; height: 30px; width: 110px;
+                    border: 1px solid var(--border); border-radius: 15px;
+                    overflow: hidden; cursor: pointer; background: #f0f4f8; }
+    .lt-left, .lt-right { flex: 1; display: flex; align-items: center; justify-content: center;
+                           font-size: .76rem; font-weight: 600; position: relative; z-index: 1;
+                           transition: color .18s; color: var(--text-muted); }
+    .lt-pill { position: absolute; top: 1px; bottom: 1px; width: calc(50% - 1px);
+               background: var(--primary); border-radius: 13px;
+               transition: transform .18s; left: 1px; }
+    .lt-chk:not(:checked) + .label-toggle .lt-left  { color: #fff; }
+    .lt-chk:checked       + .label-toggle .lt-right { color: #fff; }
+    .lt-chk:checked       + .label-toggle .lt-pill  { transform: translateX(calc(100% + 1px)); }
+
+    /* ── Fila deshabilitada ── */
+    .row-disabled td { opacity: 0.4; }
+    .row-disabled input[type="number"] { pointer-events: none; }
+
+    /* ── Reiniciar tab ── */
+    .reiniciar-wrap { display: flex; flex-direction: column; align-items: center;
+                      padding: 56px 16px; gap: 10px; }
+    .reiniciar-wrap p { color: var(--text-muted); font-size: .88rem; }
+  </style>
+</head>
+<body>
+
+  <div class="app-header">
+    <h1>Interface Vending</h1>
+  </div>
+
+  <nav class="nav-bar">
+    <button class="nav-btn" id="barItemEstadoCliente" onclick="abrirTab(event,'tabCliente')">Cliente WiFi</button>
+    <button class="nav-btn" id="barItemMQTT"          onclick="abrirTab(event,'tabMQTT')">MQTT</button>
+    <button class="nav-btn" id="barItemEquipo"        onclick="abrirTab(event,'tabEquipo')">Equipo</button>
+    <button class="nav-btn" id="barItemContadores"    onclick="abrirTab(event,'tabContadores')">Contadores</button>
+    <button class="nav-btn" id="barItemValores"       onclick="abrirTab(event,'tabValores')">Valores</button>
+    <button class="nav-btn" id="barItemGeneral"       onclick="abrirTab(event,'tabGeneral')">Reiniciar</button>
+    <button class="nav-btn" id="barItemAcerca"        onclick="abrirTab(event,'tabAcerca')">Acerca</button>
+  </nav>
+
+  <!-- ═══════════════ TAB CLIENTE ═══════════════ -->
+  <div id="tabCliente" class="tabContent">
+    <div class="tab-wrap">
+      <div class="card">
+        <p class="card-title">Estado actual</p>
+        <table class="info-table" id="tablaEstadoCliente">
+          <tbody>
+            <tr><td>SSID destino</td><td>--</td></tr>
+            <tr><td>Clave</td><td>--</td></tr>
+            <tr><td>MAC Address</td><td>--</td></tr>
+            <tr><td>IP asignada</td><td>--</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <p class="card-title">Configuracion</p>
+        <div class="form-group">
+          <label class="form-label">SSID</label>
+          <div style="display:flex; gap:8px;">
+            <input class="inp" type="text" id="ssidDestino" style="flex:1">
+            <button class="btn btn-secondary" id="seleccionarAP" onclick="return cargarAPDisponibles()">Seleccionar</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Clave</label>
+          <input class="inp" type="text" id="clave_cliente">
+        </div>
+        <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+          <label class="toggle">
+            <input type="checkbox" id="habilitadoWiFi" checked onclick="return habilitarDeshabilitarWiFi()">
+            <span class="t-slider"></span>
+          </label>
+          <span style="font-size:.88rem; font-weight:500;">Habilitado</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="return aplicarConfigCliente()">Grabar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ TAB MQTT ═══════════════ -->
+  <div id="tabMQTT" class="tabContent">
+    <div class="tab-wrap">
+      <div class="card">
+        <p class="card-title">Estado actual</p>
+        <table class="info-table" id="tablaEstadoMQTT">
+          <tbody>
+            <tr><td>Servidor</td><td>--</td></tr>
+            <tr><td>Topic</td><td>--</td></tr>
+            <tr><td>Usuario</td><td>--</td></tr>
+            <tr><td>Clave</td><td>--</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <p class="card-title">Configuracion</p>
+        <div class="form-group">
+          <label class="form-label">Servidor</label>
+          <input class="inp" type="text" id="servidorMQTT">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Topic</label>
+          <input class="inp" type="text" id="pathMQTT">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Usuario</label>
+          <input class="inp" type="text" id="usuarioMQTT">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Clave</label>
+          <input class="inp" type="text" id="claveMQTT">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="return defaultConfigMQTT()">Cargar defaults</button>
+          <button class="btn btn-primary"   onclick="return aplicarConfigMQTT()">Grabar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ TAB EQUIPO ═══════════════ -->
+  <div id="tabEquipo" class="tabContent">
+    <div class="tab-wrap">
+      <div class="card">
+        <p class="card-title">Estado actual</p>
+        <table class="info-table" id="tablaEstadoEquipo">
+          <tbody>
+            <tr><td>Serie</td><td>--</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <p class="card-title">Nuevo Valor</p>
+        <div class="form-group">
+          <label class="form-label">Serie</label>
+          <input class="inp" type="text" id="serieEquipo">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="return aplicarConfigEquipo()">Grabar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ TAB CONTADORES ═══════════════ -->
+  <div id="tabContadores" class="tabContent">
+    <div class="tab-wrap">
+      <div class="card">
+        <p class="card-title">Estado actual</p>
+        <table class="info-table" id="tablaEstadoContadores">
+          <tbody>
+            <tr><td>Parcial Fichas</td><td>--</td></tr>
+            <tr><td>Total Fichas</td><td>--</td></tr>
+            <tr><td>Parcial OnLine</td><td>--</td></tr>
+            <tr><td>Total OnLine</td><td>--</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <p class="card-title">Modificar contadores</p>
+        <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+          <label style="flex:1; font-size:.88rem; color:var(--text-muted);">Parcial Fichas</label>
+          <input class="inp inp-num" type="number" id="Cont_Parcial_Cospeles" min="0" value="0" onfocus="this.select()">
+        </div>
+        <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+          <label style="flex:1; font-size:.88rem; color:var(--text-muted);">Total Fichas</label>
+          <input class="inp inp-num" type="number" id="Cont_Total_Cospeles" min="0" value="0" onfocus="this.select()">
+        </div>
+        <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+          <label style="flex:1; font-size:.88rem; color:var(--text-muted);">Parcial OnLine</label>
+          <input class="inp inp-num" type="number" id="Cont_Parcial_OnLine" min="0" value="0" onfocus="this.select()">
+        </div>
+        <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+          <label style="flex:1; font-size:.88rem; color:var(--text-muted);">Total OnLine</label>
+          <input class="inp inp-num" type="number" id="Cont_Total_Online" min="0" value="0" onfocus="this.select()">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="return aplicarConfigContadores()">Grabar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ TAB VALORES ═══════════════ -->
+  <div id="tabValores" class="tabContent">
+    <div class="tab-wrap">
+
+      <!-- Selector de modo -->
+      <div class="card">
+        <p class="card-title">Modo de operación</p>
+        <div class="seg-ctrl">
+          <button class="seg-btn active" id="segBtnInterface" onclick="seleccionarModo(false)">Interfase</button>
+          <button class="seg-btn"        id="segBtnTimer"     onclick="seleccionarModo(true)">Temporizador</button>
+        </div>
+        <input type="hidden" id="modoTimer" value="false">
+      </div>
+
+      <!-- Card Entrada / Validador -->
+      <div class="card">
+        <p class="card-title">Entrada</p>
+        <table class="cfg-table">
+          <thead>
+            <tr><th>Parametro</th><th>Actual</th><th style="text-align:right">Modificar</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Max. pulso (ms)</td>
+              <td><span id="est_entradaMaxDurMs" class="badge" style="background:#e8f0fe;color:#1a73e8;">--</span></td>
+              <td><input class="inp inp-num" type="number" id="entradaMaxDurMs" min="1" max="9999" onfocus="this.select()"></td>
+            </tr>
+            <tr>
+              <td>Activo</td>
+              <td colspan="2" style="text-align:right">
+                <input type="checkbox" id="entradaActivoAlto" class="lt-chk">
+                <label class="label-toggle" for="entradaActivoAlto">
+                  <span class="lt-left">Bajo</span>
+                  <span class="lt-right">Alto</span>
+                  <span class="lt-pill"></span>
+                </label>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Card Salida -->
+      <div class="card">
+        <p class="card-title">Salida</p>
+        <table class="cfg-table">
+          <thead>
+            <tr><th>Parametro</th><th>Actual</th><th style="text-align:right">Modificar</th></tr>
+          </thead>
+          <tbody>
+            <tr id="row_modoEspejo">
+              <td>Salida en espejo</td>
+              <td colspan="2" style="text-align:right">
+                <input type="checkbox" id="modoEspejo" class="lt-chk" onchange="actualizarEspejo()">
+                <label class="label-toggle" for="modoEspejo">
+                  <span class="lt-left">No</span>
+                  <span class="lt-right">Si</span>
+                  <span class="lt-pill"></span>
+                </label>
+              </td>
+            </tr>
+            <tr id="row_salidaDurMs">
+              <td>Duracion pulso (ms)</td>
+              <td><span id="est_salidaDurMs" class="badge" style="background:#e8f0fe;color:#1a73e8;">--</span></td>
+              <td><input class="inp inp-num" type="number" id="salidaDurMs" min="1" max="9999" onfocus="this.select()"></td>
+            </tr>
+            <tr id="row_tiempoProgramado">
+              <td>Tiempo activacion (s)</td>
+              <td><span id="est_tiempoProgramado" class="badge" style="background:#e8f0fe;color:#1a73e8;">--</span></td>
+              <td><input class="inp inp-num" type="number" id="tiempoProgramado" min="1" max="3600" onfocus="this.select()"></td>
+            </tr>
+            <tr>
+              <td>Activo</td>
+              <td colspan="2" style="text-align:right">
+                <input type="checkbox" id="salidaActivoAlto" class="lt-chk">
+                <label class="label-toggle" for="salidaActivoAlto">
+                  <span class="lt-left">Bajo</span>
+                  <span class="lt-right">Alto</span>
+                  <span class="lt-pill"></span>
+                </label>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="return aplicarConfigValores()">Grabar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════ TAB REINICIAR ═══════════════ -->
+  <div id="tabGeneral" class="tabContent">
+    <div class="reiniciar-wrap">
+      <p>El equipo se reiniciara y se aplicaran los cambios pendientes.</p>
+      <button class="btn btn-danger" onclick="return reiniciar()">Reiniciar equipo</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ TAB ACERCA ═══════════════ -->
+  <div id="tabAcerca" class="tabContent">
+    <div class="tab-wrap">
+      <div class="card">
+        <p class="card-title">Informacion del sistema</p>
+        <table class="info-table" id="tablaEstadoAcerca">
+          <tbody>
+            <tr><td>SoftPro - Soluciones de negocios</td></tr>
+            <tr><td>Version del Firmware</td><td>--</td></tr>
+            <tr><td>Version de la administracion Web</td><td>--</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MODAL AP ═══════════════ -->
+  <div id="modalAPsDisponibles" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:100; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:10px; padding:24px; max-width:480px; width:90%; box-shadow:0 8px 24px rgba(0,0,0,.2);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <span style="font-weight:600;">Redes disponibles</span>
+        <button onclick="document.getElementById('modalAPsDisponibles').style.display='none'"
+                style="border:none; background:none; font-size:1.2rem; cursor:pointer; color:#5f6368;">&times;</button>
+      </div>
+      <table class="info-table" id="tablaAPDisponibles">
+        <tr>
+          <th style="padding:8px 10px; font-size:.78rem; font-weight:600; text-transform:uppercase; color:#5f6368; border-bottom:2px solid #dadce0;">SSID</th>
+          <th style="padding:8px 10px; font-size:.78rem; font-weight:600; text-transform:uppercase; color:#5f6368; border-bottom:2px solid #dadce0;">Potencia</th>
+          <th style="padding:8px 10px; font-size:.78rem; font-weight:600; text-transform:uppercase; color:#5f6368; border-bottom:2px solid #dadce0;">Encriptación</th>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MODAL AGUARDE ═══════════════ -->
+  <div id="modalAguarde" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:100; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:10px; padding:32px 40px; box-shadow:0 8px 24px rgba(0,0,0,.2);">
+      <span style="font-size:1rem; color:#202124;">Por favor aguarde...</span>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
