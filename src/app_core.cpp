@@ -7,6 +7,7 @@
 #include "logger.h"
 #include "connections.h"
 #include "http_server_app.h"
+#include "validator.h"
 
 // Logica habilitacion
 // En la entrada hay negacion, esto quiere decir que cuando la maquina me quiere deshabililtar el validador con un valor en alto, yo recibo un cero.
@@ -43,8 +44,8 @@ static void check_vmc_enable()
 // ── Procesa una ficha física del validador ────────────────────────────────────
 static void procesar_ficha()
 {
-  if (!g_vmcEnabled || g_enServicio)
-    return;
+  if (g_enServicio) return;
+  if (!Misvalores.Modo_Timer && !g_vmcEnabled) return;
 
   Miscontadores.Cont_Parcial_Cospeles++;
   Miscontadores.Cont_Total_Cospeles++;
@@ -99,12 +100,14 @@ void app_core_loop()
     g_cospelIn = false;
     if (g_modoAprendizaje)
     {
-      Misvalores.Salida_Duracion_ms = (uint16_t)pulseDuration;
+      Misvalores.Entrada_Duracion_ms = (uint16_t)pulseDuration;  // referencia para filtro de entrada
+      Misvalores.Salida_Duracion_ms  = (uint16_t)pulseDuration;  // duración del pulso de salida
       Save_Flash_ValorServicio();
+      validator_update_config();  // actualiza s_refDurMs en el ISR
       g_modoAprendizaje = false;
       Serial.println("Aprendizaje completado. Duracion: " + String(Misvalores.Salida_Duracion_ms) + " ms");
     }
-    else if (Misvalores.Modo_Espejo) {
+    else if (!Misvalores.Modo_Timer && Misvalores.Modo_Espejo) {
       // Modo espejo: la salida ya fue controlada por el ISR; solo actualizar contadores.
       Miscontadores.Cont_Parcial_Cospeles++;
       Miscontadores.Cont_Total_Cospeles++;

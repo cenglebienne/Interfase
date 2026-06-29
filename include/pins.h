@@ -10,7 +10,7 @@ constexpr int PIN_VMC_OUT       = 22;  // Pulso hacia la VMC (Modo 1 – Interfa
 constexpr int PIN_TIMER_OUT     = 22;  // Salida temporizada (Modo 2 – Timer)
 constexpr int PIN_HABILITACION  =  19;  // Habilitación del validador (HIGH = deshabilitar)
 constexpr int PIN_LED           =  33;  // LED de indicación (HIGH = encendido)
-
+constexpr int PIN_LED_INTERNO   =  2;  // LED interno de la placa ()
 
 
 // ── Lógica de habilitación VMC ────────────────────────────────────────────────

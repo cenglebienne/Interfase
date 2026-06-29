@@ -3,9 +3,10 @@
 #include "pins.h"
 #include "constants.h"
 
-static uint32_t s_inicioMs  = 0;
-static bool     s_activo    = false;
-static int      s_pinActivo = PIN_VMC_OUT;
+static uint32_t s_inicioMs   = 0;
+static uint32_t s_duracionMs = 0;
+static bool     s_activo     = false;
+static int      s_pinActivo  = PIN_VMC_OUT;
 
 // ── Tren de pulsos (cliente específico) ───────────────────────────────────────
 // Activar con  -DPULSO_TREN_VALIDADOR  en build_flags de platformio.ini.
@@ -54,7 +55,7 @@ void pulse_output_setup() {
   set_nivel(PIN_TIMER_OUT, false);
 }
 
-void pulse_output_trigger() {
+void pulse_output_trigger(uint32_t duracion_ms) {
   bool modoTimer = Misvalores.Modo_Timer;
 
   if (modoTimer) {
@@ -84,7 +85,8 @@ void pulse_output_trigger() {
 
   // Modo interfase normal: pulso único no bloqueante.
   if (s_activo) return;
-  s_pinActivo = PIN_VMC_OUT;
+  s_pinActivo  = PIN_VMC_OUT;
+  s_duracionMs = duracion_ms ? duracion_ms : (uint32_t)Misvalores.Salida_Duracion_ms;
   set_nivel(PIN_VMC_OUT, true);
   s_inicioMs   = millis();
   s_activo     = true;
@@ -97,8 +99,7 @@ if (!s_activo) return;
   bool modoTimer = (Misvalores.Modo_Timer);
 
   if (!modoTimer) {
-    uint32_t duracion = (uint32_t)Misvalores.Salida_Duracion_ms;
-    if ((millis() - s_inicioMs) >= duracion) {
+    if ((millis() - s_inicioMs) >= s_duracionMs) {
       set_nivel(PIN_VMC_OUT, false);
       s_activo     = false;
       g_enServicio = false;

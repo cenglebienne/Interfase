@@ -33,6 +33,8 @@ static void handleEstadoCliente() {
   String json = "{";
   json += "\"SSID destino\":\"" + String(Mientorno.CLIENTE_WIFI_ssid) + "\",";
   json += "\"Clave\":\"****\",";
+  json += "\"SSID secundario\":\"" + String(Mientorno.CLIENTE_WIFI2_ssid) + "\",";
+  json += "\"Clave secundaria\":\"****\",";
   json += "\"MAC Address\":\"" + WiFi.macAddress() + "\",";
   json += "\"IP asignada\":\"" + WiFi.localIP().toString() + "\"";
   json += "}";
@@ -111,8 +113,10 @@ static void handleAPDisponibles() {
 
 // ── POST: grabarConfigCliente.php ─────────────────────────────────────────────
 static void handleGrabarConfigCliente() {
-  strlcpy(Mientorno.CLIENTE_WIFI_ssid,  server.arg("ssidDestino").c_str(),  CAMPOS_CONFIG_LENGTH);
-  strlcpy(Mientorno.CLIENTE_WIFI_clave, server.arg("clave_cliente").c_str(), CAMPOS_CONFIG_LENGTH);
+  strlcpy(Mientorno.CLIENTE_WIFI_ssid,   server.arg("ssidDestino").c_str(),   CAMPOS_CONFIG_LENGTH);
+  strlcpy(Mientorno.CLIENTE_WIFI_clave,  server.arg("clave_cliente").c_str(),  CAMPOS_CONFIG_LENGTH);
+  strlcpy(Mientorno.CLIENTE_WIFI2_ssid,  server.arg("ssidDestino2").c_str(),  CAMPOS_CONFIG_LENGTH);
+  strlcpy(Mientorno.CLIENTE_WIFI2_clave, server.arg("clave_cliente2").c_str(), CAMPOS_CONFIG_LENGTH);
   Mientorno.CLIENTE_WIFI_Habilitado = argBool("habilitadoWiFi");
   Save_Flash_Entorno();
   server.send(200, "text/plain", "ok");

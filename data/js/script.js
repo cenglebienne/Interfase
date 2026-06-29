@@ -1,6 +1,6 @@
 var timerEventos;
-
 var CAMPOS_CONFIG_LENGTH = 40;
+var ssidTargetId = "ssidDestino";
 
 
 function abrirTab(evt, tabName) {
@@ -185,17 +185,19 @@ function recuperarEstadoValores() {
 		if (this.readyState == 4 && this.status == 200) {
 			var myObj = JSON.parse(this.responseText);
 
-			// Modo de operación
+			// modoEspejo debe establecerse ANTES de seleccionarModo para que
+			// actualizarEspejo() lea el valor correcto del JSON.
+			var toBool = function(v) { return v === true || v === "true" || v === 1 || v === "1"; };
+			document.getElementById("modoEspejo").checked = toBool(myObj["modoEspejo"]);
+
+			// Modo de operación (llama actualizarEspejo internamente con modoEspejo ya correcto)
 			var esTimer = (myObj["modoTimer"] === true || myObj["modoTimer"] === "true");
 			seleccionarModo(esTimer);
-			actualizarEspejo();
 
-			// Label-toggles booleanos
-			var boolFields = ["entradaActivoAlto", "salidaActivoAlto", "modoEspejo"];
+			// Otros toggles booleanos
+			var boolFields = ["entradaActivoAlto", "salidaActivoAlto"];
 			for (var i = 0; i < boolFields.length; i++) {
-				var val = myObj[boolFields[i]];
-				document.getElementById(boolFields[i]).checked =
-					(val === true || val === "true" || val === 1 || val === "1");
+				document.getElementById(boolFields[i]).checked = toBool(myObj[boolFields[i]]);
 			}
 
 			// Campos numéricos
@@ -245,20 +247,25 @@ function recuperarEstadoAcerca() {
 }
 
 function aplicarConfigCliente() {
-	var ssidDestino = document.getElementById("ssidDestino").value.trim();
-	var clave_cliente = document.getElementById("clave_cliente").value.trim();
+	var ssidDestino    = document.getElementById("ssidDestino").value.trim();
+	var clave_cliente  = document.getElementById("clave_cliente").value.trim();
+	var ssidDestino2   = document.getElementById("ssidDestino2").value.trim();
+	var clave_cliente2 = document.getElementById("clave_cliente2").value.trim();
 	var habilitadoWiFi = document.getElementById("habilitadoWiFi").checked;
 
-	var params = "ssidDestino=" + ssidDestino
-		+ "&clave_cliente=" + clave_cliente
-		+ "&habilitadoWiFi=" + habilitadoWiFi;
+	var params = "ssidDestino="    + ssidDestino
+		+ "&clave_cliente="    + clave_cliente
+		+ "&ssidDestino2="     + ssidDestino2
+		+ "&clave_cliente2="   + clave_cliente2
+		+ "&habilitadoWiFi="   + habilitadoWiFi;
 
 	if (habilitadoWiFi) {
 		if (ssidDestino == "") {
 			alert("El campo SSID no puede estar vacio, por favor verifique.");
 			return false;
 		}
-		if (ssidDestino.length > CAMPOS_CONFIG_LENGTH || clave_cliente.length > CAMPOS_CONFIG_LENGTH) {
+		if (ssidDestino.length > CAMPOS_CONFIG_LENGTH || clave_cliente.length > CAMPOS_CONFIG_LENGTH
+				|| ssidDestino2.length > CAMPOS_CONFIG_LENGTH || clave_cliente2.length > CAMPOS_CONFIG_LENGTH) {
 			alert("Los campos no pueden tener un tamano mayor a " + CAMPOS_CONFIG_LENGTH + " caracteres");
 			return false;
 		}
@@ -273,6 +280,8 @@ function aplicarConfigCliente() {
 				if (this.responseText == "ok") {
 					document.getElementById("ssidDestino").value = "";
 					document.getElementById("clave_cliente").value = "";
+					document.getElementById("ssidDestino2").value = "";
+					document.getElementById("clave_cliente2").value = "";
 					document.getElementById("habilitadoWiFi").value = true;
 					recuperarEstadoCliente();
 					alert("La operacion fue exitosa. Recuerde reiniciar para aplicar los cambios.");
@@ -377,18 +386,19 @@ function aplicarConfigContadores() {
 
 function habilitarDeshabilitarWiFi() {
 	var checkBox = document.getElementById("habilitadoWiFi");
-	var ssidDestino = document.getElementById("ssidDestino");
-	var clave = document.getElementById("clave_cliente");
-	var botonSeleccionarAP = document.getElementById("seleccionarAP");
-	if (checkBox.checked == true) {
-		ssidDestino.disabled = false;
-		clave.disabled = false;
-		botonSeleccionarAP.disabled = false;
-	} else {
-		ssidDestino.disabled = true;
-		clave.disabled = true;
-		botonSeleccionarAP.disabled = true;
-	}
+	var ssidDestino    = document.getElementById("ssidDestino");
+	var clave          = document.getElementById("clave_cliente");
+	var ssidDestino2   = document.getElementById("ssidDestino2");
+	var clave2         = document.getElementById("clave_cliente2");
+	var botonSeleccionarAP  = document.getElementById("seleccionarAP");
+	var botonSeleccionarAP2 = document.getElementById("seleccionarAP2");
+	var en = checkBox.checked;
+	ssidDestino.disabled        = !en;
+	clave.disabled              = !en;
+	ssidDestino2.disabled       = !en;
+	clave2.disabled             = !en;
+	botonSeleccionarAP.disabled  = !en;
+	botonSeleccionarAP2.disabled = !en;
 }
 
 function aplicarConfigEquipo() {
@@ -488,7 +498,8 @@ function reiniciar() {
 	return false;
 }
 
-function cargarAPDisponibles() {
+function cargarAPDisponibles(targetId) {
+	ssidTargetId = targetId || "ssidDestino";
 	var xmlhttp = new XMLHttpRequest();
 	var params = "noCache=" + new Date().getTime();
 	var cantFilas;
@@ -529,6 +540,6 @@ function cargarAPDisponibles() {
 
 function setSSIDDestino(obj) {
 	obj.style.backgroundColor = 'red';
-	document.getElementById("ssidDestino").value = obj.cells[0].textContent;
+	document.getElementById(ssidTargetId).value = obj.cells[0].textContent;
 	document.getElementById('modalAPsDisponibles').style.display = 'none';
 }

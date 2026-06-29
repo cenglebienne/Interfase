@@ -1,16 +1,23 @@
 #include "validator.h"
 #include "app_state.h"
 #include "pins.h"
+#include "constants.h"
 #include "driver/gpio.h"
 
 // Variables sombra para el ISR (no se puede acceder a Misvalores desde IRAM).
 static volatile bool     s_activoAlto       = false;
-static volatile uint32_t s_minDurMs         = 50;
-static volatile uint32_t s_maxDurMs         = 500;
+static volatile uint32_t s_refDurMs         = DEFAULT_INPUT_DURATION_MS;
 static volatile bool     s_enPulso          = false;
 static volatile uint32_t s_inicioMs         = 0;
 static volatile bool     s_modoEspejo       = false;
 static volatile bool     s_salidaActivoAlto = false;
+
+// Calcula el rango de aceptación: ±10% para ref > 100 ms, ±20% para ref ≤ 100 ms.
+static inline void IRAM_ATTR dur_range(uint32_t ref, uint32_t &lo, uint32_t &hi) {
+  uint32_t tol = (ref > 100) ? ref / 10 : ref / 5;
+  lo = (ref > tol) ? ref - tol : 0;
+  hi = ref + tol;
+}
 
 void IRAM_ATTR isr_validador() {
   bool     estado = (bool)digitalRead(PIN_VALIDATOR_IN);
@@ -30,7 +37,9 @@ void IRAM_ATTR isr_validador() {
       s_enPulso  = true;
     } else if (s_enPulso) {
       uint32_t dur = ahora - s_inicioMs;
-      if (dur >= s_minDurMs && dur <= s_maxDurMs) {
+      uint32_t lo, hi;
+      dur_range(s_refDurMs, lo, hi);
+      if (dur >= lo && dur <= hi) {
         pulseDuration = dur;
         g_cospelIn    = true;
       }
@@ -45,7 +54,14 @@ void IRAM_ATTR isr_validador() {
     s_enPulso  = true;
   } else if (s_enPulso) {
     uint32_t dur = ahora - s_inicioMs;
-    if (dur >= s_minDurMs && dur <= s_maxDurMs) {
+    uint32_t lo, hi;
+    if (g_modoAprendizaje) {
+      g_cospelIn    = true;
+      pulseDuration = dur;
+    } 
+
+    dur_range(s_refDurMs, lo, hi);
+    if (dur >= lo && dur <= hi) {
       pulseDuration = dur;
       g_cospelIn    = true;
     }
@@ -62,9 +78,8 @@ void validator_setup() {
 void validator_update_config() {
   noInterrupts();
   s_activoAlto       = Misvalores.Entrada_Activo_Alto;
-  s_minDurMs         = Misvalores.Entrada_Duracion_ms;
-  s_maxDurMs         = Misvalores.Entrada_Max_Duracion_ms;
-  s_modoEspejo       = Misvalores.Modo_Espejo;
+  s_refDurMs         = Misvalores.Entrada_Duracion_ms;
+  s_modoEspejo       = Misvalores.Modo_Espejo && !Misvalores.Modo_Timer;
   s_salidaActivoAlto = Misvalores.Salida_Activo_Alto;
   interrupts();
 }

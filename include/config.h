@@ -36,6 +36,8 @@ constexpr uint16_t VERSION_FIRMWARE = static_cast<uint16_t>(FW_VERSION);
 struct Entorno {
   char     CLIENTE_WIFI_ssid[CAMPOS_CONFIG_LENGTH];
   char     CLIENTE_WIFI_clave[CAMPOS_CONFIG_LENGTH];
+  char     CLIENTE_WIFI2_ssid[CAMPOS_CONFIG_LENGTH];
+  char     CLIENTE_WIFI2_clave[CAMPOS_CONFIG_LENGTH];
   bool     CLIENTE_WIFI_Habilitado;
   uint32_t CLIENTE_WIFI_segundosEsperarConexion;
   char     MQTT_servidor[64];

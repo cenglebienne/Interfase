@@ -12,8 +12,10 @@ void Get_Flash_All() {
   p.begin(NVS_NS, true);
 
   // Entorno
-  strlcpy(Mientorno.CLIENTE_WIFI_ssid,  p.getString("SSID",      "Farina").c_str(),      CAMPOS_CONFIG_LENGTH);
-  strlcpy(Mientorno.CLIENTE_WIFI_clave, p.getString("CLAVE",     "Lacar2025").c_str(),   CAMPOS_CONFIG_LENGTH);
+  strcpy(Mientorno.CLIENTE_WIFI_ssid,   p.getString("CWIFI_ssid",   "").c_str());
+  strcpy(Mientorno.CLIENTE_WIFI_clave,  p.getString("CWIFI_clave",  "").c_str());
+  strcpy(Mientorno.CLIENTE_WIFI2_ssid,  p.getString("CWIFI2_ssid",  FACTORY2_WIFI_SSID).c_str());
+  strcpy(Mientorno.CLIENTE_WIFI2_clave, p.getString("CWIFI2_clave", FACTORY2_WIFI_PASS).c_str());
   Mientorno.CLIENTE_WIFI_Habilitado            = p.getBool("WIFI_EN", true);
   Mientorno.CLIENTE_WIFI_segundosEsperarConexion = p.getUInt("WIFI_TO", 20);
   strlcpy(Mientorno.MQTT_servidor, p.getString("MQTT_SRV",   "66.97.47.118").c_str(), 64);
@@ -63,8 +65,10 @@ void Get_Flash_All() {
 void Save_Flash_Entorno() {
   Preferences p;
   p.begin(NVS_NS, false);
-  p.putString("SSID",       Mientorno.CLIENTE_WIFI_ssid);
-  p.putString("CLAVE",      Mientorno.CLIENTE_WIFI_clave);
+  p.putString("CWIFI_ssid",    Mientorno.CLIENTE_WIFI_ssid);
+  p.putString("CWIFI_clave",   Mientorno.CLIENTE_WIFI_clave);
+  p.putString("CWIFI2_ssid",   Mientorno.CLIENTE_WIFI2_ssid);
+  p.putString("CWIFI2_clave",  Mientorno.CLIENTE_WIFI2_clave);
   p.putBool(  "WIFI_EN",    Mientorno.CLIENTE_WIFI_Habilitado);
   p.putUInt(  "WIFI_TO",    Mientorno.CLIENTE_WIFI_segundosEsperarConexion);
   p.putString("MQTT_SRV",   Mientorno.MQTT_servidor);
@@ -138,8 +142,10 @@ void Set_Flash_UInt(const char *key, uint32_t value) {
 // ── Defaults de primera ejecución ─────────────────────────────────────────────
 void Inicializar_Flash() {
   Serial.println("Flash: primera inicialización con valores por defecto.");
-  strlcpy(Mientorno.CLIENTE_WIFI_ssid,  "Farina",       CAMPOS_CONFIG_LENGTH);
-  strlcpy(Mientorno.CLIENTE_WIFI_clave, "Lacar2025",    CAMPOS_CONFIG_LENGTH);
+  strncpy(Mientorno.CLIENTE_WIFI_ssid,  FACTORY_WIFI_SSID, CAMPOS_CONFIG_LENGTH);
+  strncpy(Mientorno.CLIENTE_WIFI_clave, FACTORY_WIFI_PASS, CAMPOS_CONFIG_LENGTH);
+  strncpy(Mientorno.CLIENTE_WIFI2_ssid,  FACTORY2_WIFI_SSID, CAMPOS_CONFIG_LENGTH);
+  strncpy(Mientorno.CLIENTE_WIFI2_clave, FACTORY2_WIFI_PASS, CAMPOS_CONFIG_LENGTH);
   Mientorno.CLIENTE_WIFI_Habilitado             = true;
   Mientorno.CLIENTE_WIFI_segundosEsperarConexion = 20;
   strlcpy(Mientorno.MQTT_servidor, "66.97.47.118", 64);

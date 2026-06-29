@@ -101,6 +101,12 @@ static void btn_poll() {
 void button_led_setup() {
   pinMode(PIN_LED, OUTPUT);
   digitalWrite(PIN_LED, LOW);
+
+  pinMode(PIN_LED_INTERNO, OUTPUT);
+  for (uint8_t i = 0; i < 5; i++) {
+    digitalWrite(PIN_LED_INTERNO, HIGH); delay(100);
+    digitalWrite(PIN_LED_INTERNO, LOW);  delay(100);
+  }
 }
 
 void button_led_poll() {
