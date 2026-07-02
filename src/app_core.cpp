@@ -21,7 +21,9 @@
 static void check_vmc_enable()
 {
 
-  bool habilitado = (digitalRead(PIN_VMC_ENABLE_IN) == HIGH);
+  bool habilitado = Misvalores.Usar_Habilitacion_Externa
+                       ? (digitalRead(PIN_VMC_ENABLE_IN) == HIGH)
+                       : true;  // pin ignorado: el validador queda siempre habilitado
   static bool cambiomensaje = false;
 
   if (!g_modoAprendizaje)

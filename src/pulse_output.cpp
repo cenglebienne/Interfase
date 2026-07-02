@@ -7,6 +7,8 @@ static uint32_t s_inicioMs   = 0;
 static uint32_t s_duracionMs = 0;
 static bool     s_activo     = false;
 static int      s_pinActivo  = PIN_VMC_OUT;
+static uint8_t  s_pulsosRestantes = 0;  // pulsos que faltan emitir tras el actual (Modo Interface)
+static bool     s_enGap           = false;  // true = en el intervalo entre pulsos del tren
 
 // ── Tren de pulsos (cliente específico) ───────────────────────────────────────
 // Activar con  -DPULSO_TREN_VALIDADOR  en build_flags de platformio.ini.
@@ -83,10 +85,13 @@ void pulse_output_trigger(uint32_t duracion_ms) {
   return;
 #endif
 
-  // Modo interfase normal: pulso único no bloqueante.
+  // Modo interfase normal: tren de 1 o más pulsos, no bloqueante.
   if (s_activo) return;
   s_pinActivo  = PIN_VMC_OUT;
   s_duracionMs = duracion_ms ? duracion_ms : (uint32_t)Misvalores.Salida_Duracion_ms;
+  uint8_t cantidad  = Misvalores.Salida_Cantidad_Pulsos ? Misvalores.Salida_Cantidad_Pulsos : 1;
+  s_pulsosRestantes = cantidad - 1;
+  s_enGap           = false;
   set_nivel(PIN_VMC_OUT, true);
   s_inicioMs   = millis();
   s_activo     = true;
@@ -99,15 +104,32 @@ if (!s_activo) return;
   bool modoTimer = (Misvalores.Modo_Timer);
 
   if (!modoTimer) {
-    if ((millis() - s_inicioMs) >= s_duracionMs) {
-      set_nivel(PIN_VMC_OUT, false);
-      s_activo     = false;
-      g_enServicio = false;
+    if ((millis() - s_inicioMs) < s_duracionMs) return;
 
-      if (g_reinicio_pendiente) {
-        g_reinicio_pendiente = false;
-        ESP.restart();
+    if (!s_enGap) {
+      // Termina el pulso activo.
+      set_nivel(PIN_VMC_OUT, false);
+      if (s_pulsosRestantes > 0) {
+        s_pulsosRestantes--;
+        s_enGap    = true;
+        s_inicioMs = millis();
+        return;
       }
+    } else {
+      // Termina el intervalo entre pulsos: arranca el siguiente pulso.
+      set_nivel(PIN_VMC_OUT, true);
+      s_enGap    = false;
+      s_inicioMs = millis();
+      return;
+    }
+
+    // Tren de pulsos completo.
+    s_activo     = false;
+    g_enServicio = false;
+
+    if (g_reinicio_pendiente) {
+      g_reinicio_pendiente = false;
+      ESP.restart();
     }
     return;
   }

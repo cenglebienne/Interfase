@@ -315,9 +315,9 @@
 
       <!-- Selector de modo -->
       <div class="card">
-        <p class="card-title">Modo de operación</p>
+        <p class="card-title">Modo de operacion</p>
         <div class="seg-ctrl">
-          <button class="seg-btn active" id="segBtnInterface" onclick="seleccionarModo(false)">Interfase</button>
+          <button class="seg-btn active" id="segBtnInterface" onclick="seleccionarModo(false)">Interface</button>
           <button class="seg-btn"        id="segBtnTimer"     onclick="seleccionarModo(true)">Temporizador</button>
         </div>
         <input type="hidden" id="modoTimer" value="false">
@@ -332,17 +332,23 @@
           </thead>
           <tbody>
             <tr>
-              <td>Max. pulso (ms)</td>
-              <td><span id="est_entradaMaxDurMs" class="badge" style="background:#e8f0fe;color:#1a73e8;">--</span></td>
-              <td><input class="inp inp-num" type="number" id="entradaMaxDurMs" min="1" max="9999" onfocus="this.select()"></td>
-            </tr>
-            <tr>
               <td>Activo</td>
               <td colspan="2" style="text-align:right">
                 <input type="checkbox" id="entradaActivoAlto" class="lt-chk">
                 <label class="label-toggle" for="entradaActivoAlto">
                   <span class="lt-left">Bajo</span>
                   <span class="lt-right">Alto</span>
+                  <span class="lt-pill"></span>
+                </label>
+              </td>
+            </tr>
+            <tr>
+              <td>Habilitacion externa (VMC)</td>
+              <td colspan="2" style="text-align:right">
+                <input type="checkbox" id="usarHabilitacionExterna" class="lt-chk">
+                <label class="label-toggle" for="usarHabilitacionExterna">
+                  <span class="lt-left">No</span>
+                  <span class="lt-right">Si</span>
                   <span class="lt-pill"></span>
                 </label>
               </td>
@@ -374,6 +380,11 @@
               <td>Duracion pulso (ms)</td>
               <td><span id="est_salidaDurMs" class="badge" style="background:#e8f0fe;color:#1a73e8;">--</span></td>
               <td><input class="inp inp-num" type="number" id="salidaDurMs" min="1" max="9999" onfocus="this.select()"></td>
+            </tr>
+            <tr id="row_salidaCantidadPulsos">
+              <td>Cantidad de pulsos</td>
+              <td><span id="est_salidaCantidadPulsos" class="badge" style="background:#e8f0fe;color:#1a73e8;">--</span></td>
+              <td><input class="inp inp-num" type="number" id="salidaCantidadPulsos" min="1" max="99" onfocus="this.select()"></td>
             </tr>
             <tr id="row_tiempoProgramado">
               <td>Tiempo activacion (s)</td>

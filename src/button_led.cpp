@@ -18,6 +18,23 @@ static bool     s_ledOn = false;
 // Cuando es true, btn_poll controla el LED y led_poll no interfiere.
 static bool s_btnOverrideLed = false;
 
+// ── Parpadeo de arranque (no bloqueante) ──────────────────────────────────────
+// 5 parpadeos de 100 ms en PIN_LED_INTERNO; s_bootStep >= 10 = terminado.
+static uint8_t  s_bootStep = 10;
+static uint32_t s_bootMs   = 0;
+
+static void boot_blink_poll() {
+  if (s_bootStep >= 10) return;
+  if ((millis() - s_bootMs) < 50UL) return;
+  s_bootMs = millis();
+  s_bootStep++;
+  if (s_bootStep >= 10) {
+    digitalWrite(PIN_LED_INTERNO, LOW);
+  } else {
+    digitalWrite(PIN_LED_INTERNO, (s_bootStep & 1) ? LOW : HIGH);
+  }
+}
+
 static void led_poll() {
   if (s_btnOverrideLed) return;
 
@@ -103,13 +120,13 @@ void button_led_setup() {
   digitalWrite(PIN_LED, LOW);
 
   pinMode(PIN_LED_INTERNO, OUTPUT);
-  for (uint8_t i = 0; i < 5; i++) {
-    digitalWrite(PIN_LED_INTERNO, HIGH); delay(100);
-    digitalWrite(PIN_LED_INTERNO, LOW);  delay(100);
-  }
+  digitalWrite(PIN_LED_INTERNO, HIGH);  // primer mitad del primer parpadeo
+  s_bootMs   = millis();
+  s_bootStep = 0;
 }
 
 void button_led_poll() {
+  boot_blink_poll();
   btn_poll();
   led_poll();
 }

@@ -3,7 +3,7 @@
 
 // ── Identificación del producto ───────────────────────────────────────────────
 #ifndef PRODUCTO
-  #define PRODUCTO "INTERFACE VENDING"
+  #define PRODUCTO "INTERFACE V2"
 #endif
 
 #ifndef FW_VERSION
@@ -71,9 +71,10 @@ struct Valores {
   // ── Configuración de pulsos (específico de este proyecto) ────────────────────
   bool     Entrada_Activo_Alto;   // true = pulso del validador es nivel HIGH
   uint16_t Entrada_Duracion_ms;   // ancho mínimo de pulso para considerarlo válido (ms)
-  uint16_t Entrada_Max_Duracion_ms; // ancho máximo — pulsos más largos se descartan
+  bool     Usar_Habilitacion_Externa; // true = PIN_VMC_ENABLE_IN decide el estado de PIN_HABILITACION (validador); false = ignora el pin, PIN_HABILITACION queda siempre habilitando al validador
   bool     Salida_Activo_Alto;    // true = pulso de salida es nivel HIGH
   uint16_t Salida_Duracion_ms;    // duración del pulso de salida en Modo Interface (ms)
+  uint8_t  Salida_Cantidad_Pulsos; // cantidad de pulsos de salida por ficha (Modo Interface, sin espejo)
 };
 
 struct UpdateCfg {

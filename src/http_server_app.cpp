@@ -73,9 +73,10 @@ static void handleEstadoContadores() {
 static void handleEstadoValores() {
   String json = "{";
   json += "\"modoTimer\":"           + String(Misvalores.Modo_Timer ? "true" : "false") + ",";
-  json += "\"entradaMaxDurMs\":"     + String(Misvalores.Entrada_Max_Duracion_ms) + ",";
   json += "\"entradaActivoAlto\":"   + String(Misvalores.Entrada_Activo_Alto ? "true" : "false") + ",";
+  json += "\"usarHabilitacionExterna\":" + String(Misvalores.Usar_Habilitacion_Externa ? "true" : "false") + ",";
   json += "\"salidaDurMs\":"         + String(Misvalores.Salida_Duracion_ms) + ",";
+  json += "\"salidaCantidadPulsos\":" + String(Misvalores.Salida_Cantidad_Pulsos) + ",";
   json += "\"salidaActivoAlto\":"    + String(Misvalores.Salida_Activo_Alto ? "true" : "false") + ",";
   json += "\"modoEspejo\":"          + String(Misvalores.Modo_Espejo ? "true" : "false") + ",";
   json += "\"tiempoProgramado\":"    + String(Misvalores.Tiempo_Programado);
@@ -152,9 +153,10 @@ static void handleGrabarConfigContadores() {
 // ── POST: grabarConfigValores.php ─────────────────────────────────────────────
 static void handleGrabarConfigValores() {
   Misvalores.Modo_Timer              = argBool("modoTimer");
-  Misvalores.Entrada_Max_Duracion_ms = (uint16_t)server.arg("entradaMaxDurMs").toInt();
   Misvalores.Entrada_Activo_Alto     = argBool("entradaActivoAlto");
+  Misvalores.Usar_Habilitacion_Externa = argBool("usarHabilitacionExterna");
   Misvalores.Salida_Duracion_ms      = (uint16_t)server.arg("salidaDurMs").toInt();
+  Misvalores.Salida_Cantidad_Pulsos  = (uint8_t)server.arg("salidaCantidadPulsos").toInt();
   Misvalores.Salida_Activo_Alto      = argBool("salidaActivoAlto");
   Misvalores.Modo_Espejo             = argBool("modoEspejo");
   Misvalores.Tiempo_Programado       = server.arg("tiempoProgramado").toInt();

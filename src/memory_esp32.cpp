@@ -46,9 +46,10 @@ void Get_Flash_All() {
   strlcpy(Misvalores.Telefono, p.getString("Telefono", "").c_str(), 17);
   Misvalores.Entrada_Activo_Alto    = p.getBool(  "EntActAlto",  false);
   Misvalores.Entrada_Duracion_ms    = p.getUShort("EntDurMs",    DEFAULT_INPUT_DURATION_MS);
-  Misvalores.Entrada_Max_Duracion_ms= p.getUShort("EntMaxDurMs", DEFAULT_INPUT_MAX_DURATION_MS);
+  Misvalores.Usar_Habilitacion_Externa = p.getBool("UsarHabExt", true);
   Misvalores.Salida_Activo_Alto     = p.getBool(  "SalActAlto",  false);
   Misvalores.Salida_Duracion_ms     = p.getUShort("SalDurMs",    DEFAULT_OUTPUT_DURATION_MS);
+  Misvalores.Salida_Cantidad_Pulsos = p.getUChar( "SalCantPul",  DEFAULT_OUTPUT_PULSE_COUNT);
 
   // UpdateCfg
   Miupdate.updateFirmwarePendiente   = p.getBool("updFW",     false);
@@ -107,9 +108,10 @@ void Save_Flash_ValorServicio() {
   p.putString("Telefono",    Misvalores.Telefono);
   p.putBool(  "EntActAlto",   Misvalores.Entrada_Activo_Alto);
   p.putUShort("EntDurMs",     Misvalores.Entrada_Duracion_ms);
-  p.putUShort("EntMaxDurMs",  Misvalores.Entrada_Max_Duracion_ms);
+  p.putBool(  "UsarHabExt",   Misvalores.Usar_Habilitacion_Externa);
   p.putBool(  "SalActAlto",   Misvalores.Salida_Activo_Alto);
   p.putUShort("SalDurMs",     Misvalores.Salida_Duracion_ms);
+  p.putUChar( "SalCantPul",   Misvalores.Salida_Cantidad_Pulsos);
   p.end();
 }
 
@@ -166,8 +168,10 @@ void Inicializar_Flash() {
   Misvalores.Empresa[0]           = '\0';
   Misvalores.Telefono[0]          = '\0';
   Misvalores.Entrada_Activo_Alto      = false;
+  Misvalores.Usar_Habilitacion_Externa = true;
   Misvalores.Salida_Activo_Alto       = false;
   Misvalores.Salida_Duracion_ms   = DEFAULT_OUTPUT_DURATION_MS;
+  Misvalores.Salida_Cantidad_Pulsos = DEFAULT_OUTPUT_PULSE_COUNT;
 
   memset(&Miupdate, 0, sizeof(Miupdate));
 

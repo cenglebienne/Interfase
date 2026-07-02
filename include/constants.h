@@ -3,8 +3,8 @@
 
 // ── Valores por defecto de pulsos ─────────────────────────────────────────────
 constexpr uint16_t DEFAULT_INPUT_DURATION_MS      =  450;  // Ancho mínimo de pulso válido (ms)
-constexpr uint16_t DEFAULT_INPUT_MAX_DURATION_MS  = 500;  // Ancho máximo de pulso válido (ms)
 constexpr uint16_t DEFAULT_OUTPUT_DURATION_MS = 500;  // Duración del pulso de salida (ms)
+constexpr uint8_t  DEFAULT_OUTPUT_PULSE_COUNT =   1;  // Cantidad de pulsos de salida por ficha
 constexpr int32_t  DEFAULT_TIEMPO_PROGRAMADO  =   5;  // Modo Timer: duración de salida (s)
 
 // ── Timeouts generales ────────────────────────────────────────────────────────

@@ -157,10 +157,13 @@ function recuperarEstadoContadores() {
 
 function actualizarEspejo() {
 	var esEspejo = document.getElementById("modoEspejo").checked;
-	document.getElementById("salidaDurMs").disabled = esEspejo ||
-		document.getElementById("modoTimer").value === "true";
-	document.getElementById("row_salidaDurMs").classList.toggle("row-disabled", esEspejo ||
-		document.getElementById("modoTimer").value === "true");
+	var deshabilitar = esEspejo || document.getElementById("modoTimer").value === "true";
+	document.getElementById("salidaDurMs").disabled = deshabilitar;
+	document.getElementById("row_salidaDurMs").classList.toggle("row-disabled", deshabilitar);
+
+	// La cantidad de pulsos solo aplica sin espejo (en espejo se replica 1 a 1 lo que entra).
+	document.getElementById("salidaCantidadPulsos").disabled = deshabilitar;
+	document.getElementById("row_salidaCantidadPulsos").classList.toggle("row-disabled", deshabilitar);
 }
 
 function seleccionarModo(esTimer) {
@@ -195,16 +198,16 @@ function recuperarEstadoValores() {
 			seleccionarModo(esTimer);
 
 			// Otros toggles booleanos
-			var boolFields = ["entradaActivoAlto", "salidaActivoAlto"];
+			var boolFields = ["entradaActivoAlto", "usarHabilitacionExterna", "salidaActivoAlto"];
 			for (var i = 0; i < boolFields.length; i++) {
 				document.getElementById(boolFields[i]).checked = toBool(myObj[boolFields[i]]);
 			}
 
 			// Campos numéricos
 			var numFields = [
-				{ id: "entradaMaxDurMs",  estId: "est_entradaMaxDurMs"  },
-				{ id: "salidaDurMs",      estId: "est_salidaDurMs"      },
-				{ id: "tiempoProgramado", estId: "est_tiempoProgramado" }
+				{ id: "salidaDurMs",           estId: "est_salidaDurMs"           },
+				{ id: "salidaCantidadPulsos",  estId: "est_salidaCantidadPulsos"  },
+				{ id: "tiempoProgramado",      estId: "est_tiempoProgramado"      }
 			];
 			for (var j = 0; j < numFields.length; j++) {
 				var v = myObj[numFields[j].id];
@@ -433,17 +436,18 @@ function aplicarConfigEquipo() {
 }
 
 function aplicarConfigValores() {
-	var entradaMaxDurMs  = parseInt(document.getElementById("entradaMaxDurMs").value);
-	var esTimer          = document.getElementById("modoTimer").value === "true";
-	var salidaDurMs      = parseInt(document.getElementById("salidaDurMs").value);
-	var tiempoProgramado = parseInt(document.getElementById("tiempoProgramado").value);
+	var esTimer              = document.getElementById("modoTimer").value === "true";
+	var esEspejo             = document.getElementById("modoEspejo").checked;
+	var salidaDurMs          = parseInt(document.getElementById("salidaDurMs").value);
+	var salidaCantidadPulsos = parseInt(document.getElementById("salidaCantidadPulsos").value);
+	var tiempoProgramado     = parseInt(document.getElementById("tiempoProgramado").value);
 
-	if (isNaN(entradaMaxDurMs)) {
-		alert("El campo Max. pulso debe tener un valor valido.");
-		return false;
-	}
 	if (!esTimer && isNaN(salidaDurMs)) {
 		alert("La duracion de salida debe tener un valor valido.");
+		return false;
+	}
+	if (!esTimer && !esEspejo && (isNaN(salidaCantidadPulsos) || salidaCantidadPulsos < 1)) {
+		alert("La cantidad de pulsos debe ser un valor valido (minimo 1).");
 		return false;
 	}
 	if (esTimer && isNaN(tiempoProgramado)) {
@@ -451,13 +455,14 @@ function aplicarConfigValores() {
 		return false;
 	}
 
-	var params = "entradaMaxDurMs="    + entradaMaxDurMs
-		+ "&entradaActivoAlto=" + document.getElementById("entradaActivoAlto").checked
+	var params = "entradaActivoAlto=" + document.getElementById("entradaActivoAlto").checked
+		+ "&usarHabilitacionExterna=" + document.getElementById("usarHabilitacionExterna").checked
 		+ "&modoTimer="         + (esTimer ? "true" : "false")
 		+ "&salidaDurMs="       + salidaDurMs
+		+ "&salidaCantidadPulsos=" + (isNaN(salidaCantidadPulsos) ? 1 : salidaCantidadPulsos)
 		+ "&tiempoProgramado="  + tiempoProgramado
 		+ "&salidaActivoAlto="  + document.getElementById("salidaActivoAlto").checked
-		+ "&modoEspejo="        + document.getElementById("modoEspejo").checked;
+		+ "&modoEspejo="        + esEspejo;
 
 	var r = confirm("Se guardaran los cambios, desea continuar?");
 	if (r == true) {
