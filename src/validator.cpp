@@ -28,8 +28,11 @@ void IRAM_ATTR isr_validador() {
 
   if (s_modoEspejo) {
     // Modo espejo: la salida sigue a la entrada en tiempo real.
+    // Mismo pin/etapa de salida que set_nivel() en pulse_output.cpp: el opto
+    // 4N25 + pull-up invierte GPIO↔terminal, por eso se escribe en el GPIO el
+    // nivel contrario al que s_salidaActivoAlto describe para el terminal.
     gpio_set_level((gpio_num_t)PIN_VMC_OUT,
-                   (inputActivo == s_salidaActivoAlto) ? 1 : 0);
+                   (inputActivo == s_salidaActivoAlto) ? 0 : 1);
 
     // Medir duración para conteo (en ms; pulsos sub-ms quedan en 0 ms).
     if (inputActivo) {

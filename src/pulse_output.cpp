@@ -43,8 +43,12 @@ static void emitir_tren() {
 #endif
 
 // Lleva el pin al nivel activo o inactivo según la polaridad configurada.
+// La etapa de salida (opto 4N25 + pull-up) invierte la señal entre el GPIO
+// y el terminal físico, por lo que aquí se escribe el nivel contrario al
+// que Salida_Activo_Alto describe: así "Activo Alto" refleja lo que se mide
+// en el conector (reposo 0V / pulso +12V), no el nivel interno del ESP32.
 static void set_nivel(int pin, bool activar) {
-  digitalWrite(pin, activar == Misvalores.Salida_Activo_Alto ? HIGH : LOW);
+  digitalWrite(pin, activar == Misvalores.Salida_Activo_Alto ? LOW : HIGH);
 }
 
 void pulse_output_setup() {
