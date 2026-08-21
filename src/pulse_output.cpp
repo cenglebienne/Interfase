@@ -65,12 +65,15 @@ void pulse_output_trigger(uint32_t duracion_ms) {
   bool modoTimer = Misvalores.Modo_Timer;
 
   if (modoTimer) {
-    if (s_activo) return;
-    s_pinActivo = PIN_TIMER_OUT;
-    set_nivel(PIN_TIMER_OUT, true);
-    s_inicioMs   = millis();
-    s_activo     = true;
-    g_enServicio = true;
+    // Un nuevo evento durante la cuenta regresiva reinicia el tiempo desde cero
+    // en vez de ser ignorado.
+    if (!s_activo) {
+      s_pinActivo = PIN_TIMER_OUT;
+      set_nivel(PIN_TIMER_OUT, true);
+      s_activo     = true;
+      g_enServicio = true;
+    }
+    s_inicioMs = millis();
     return;
   }
 

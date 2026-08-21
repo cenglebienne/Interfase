@@ -40,13 +40,15 @@ static void check_vmc_enable()
     digitalWrite(PIN_HABILITACION, HIGH);  // modo aprendizaje: habilitar validador
   }
   // El pago QR está disponible cuando la VMC habilita y no hay servicio en curso.
-  g_pagoQrDisponible = g_vmcEnabled && !g_enServicio;
+  // En Modo Timer, un servicio en curso no bloquea: un nuevo evento reinicia la cuenta regresiva.
+  g_pagoQrDisponible = g_vmcEnabled && (!g_enServicio || Misvalores.Modo_Timer);
 }
 
 // ── Procesa una ficha física del validador ────────────────────────────────────
 static void procesar_ficha()
 {
-  if (g_enServicio) return;
+  // En Modo Timer, un nuevo evento durante la cuenta regresiva la reinicia en vez de ignorarse.
+  if (g_enServicio && !Misvalores.Modo_Timer) return;
   if (!Misvalores.Modo_Timer && !g_vmcEnabled) return;
 
   Miscontadores.Cont_Parcial_Cospeles++;
@@ -59,7 +61,7 @@ static void procesar_ficha()
 // ── Procesa un pago electrónico online ────────────────────────────────────────
 static void procesar_pago_online()
 {
-  if (!g_vmcEnabled || g_enServicio)
+  if (!g_vmcEnabled || (g_enServicio && !Misvalores.Modo_Timer))
   {
     g_pagoAceptado = false;
     g_pagoelectronico = false;
