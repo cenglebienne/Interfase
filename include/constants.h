@@ -6,6 +6,10 @@ constexpr uint16_t DEFAULT_INPUT_DURATION_MS      =  450;  // Ancho mínimo de p
 constexpr uint16_t DEFAULT_OUTPUT_DURATION_MS = 500;  // Duración del pulso de salida (ms)
 constexpr uint8_t  DEFAULT_OUTPUT_PULSE_COUNT =   1;  // Cantidad de pulsos de salida por ficha
 constexpr int32_t  DEFAULT_TIEMPO_PROGRAMADO  =   5;  // Modo Timer: duración de salida (s)
+// ── Buzzer de pago aceptado (fijo, todos los modos) ──────────────────────────
+constexpr uint8_t  BUZZER_PULSOS              =   2;  // Cantidad de beeps
+constexpr uint32_t BUZZER_PULSO_MS            = 200;  // Duración de cada beep (ms)
+constexpr uint32_t BUZZER_PAUSA_MS            = 200;  // Pausa entre beeps (ms)
 
 // ── Timeouts generales ────────────────────────────────────────────────────────
 constexpr uint32_t AP_TIMEOUT_MS      = 300000UL;  // 5 minutos en modo AP

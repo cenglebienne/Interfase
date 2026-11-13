@@ -11,6 +11,7 @@ constexpr int PIN_TIMER_OUT     = 22;  // Salida temporizada (Modo 2 – Timer)
 constexpr int PIN_HABILITACION  =  19;  // Habilitación del validador (HIGH = deshabilitar)
 constexpr int PIN_LED           =  33;  // LED de indicación (HIGH = encendido)
 constexpr int PIN_LED_INTERNO   =  2;  // LED interno de la placa ()
+constexpr int PIN_BUZZER        = 32;  // Buzzer de pago aceptado (siempre activo-ALTO, reposo LOW)
 
 
 // ── Lógica de habilitación VMC ────────────────────────────────────────────────

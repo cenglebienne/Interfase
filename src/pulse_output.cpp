@@ -9,6 +9,30 @@ static bool     s_activo     = false;
 static int      s_pinActivo  = PIN_VMC_OUT;
 static uint8_t  s_pulsosRestantes = 0;  // pulsos que faltan emitir tras el actual (Modo Interface)
 static bool     s_enGap           = false;  // true = en el intervalo entre pulsos del tren
+static uint8_t  s_buzzerFases     = 0;  // fases restantes (ON/OFF alternadas); 0 = inactivo
+static uint32_t s_buzzerInicioMs  = 0;
+
+// ── Buzzer de pago aceptado ───────────────────────────────────────────────────
+// BUZZER_PULSOS beeps de BUZZER_PULSO_MS separados por BUZZER_PAUSA_MS, en todos
+// los modos. Siempre activo-ALTO: no depende de Salida_Activo_Alto, así queda
+// apagado en reposo.
+void buzzer_beep() {
+  digitalWrite(PIN_BUZZER, HIGH);
+  s_buzzerFases    = BUZZER_PULSOS * 2 - 1;  // ON, OFF, ON, ...
+  s_buzzerInicioMs = millis();
+}
+
+static void buzzer_poll() {
+  if (s_buzzerFases == 0) return;
+  // Fases impares restantes = buzzer encendido; pares = pausa.
+  bool     encendido = (s_buzzerFases & 1);
+  uint32_t duracion  = encendido ? BUZZER_PULSO_MS : BUZZER_PAUSA_MS;
+  if ((millis() - s_buzzerInicioMs) < duracion) return;
+
+  s_buzzerFases--;
+  s_buzzerInicioMs = millis();
+  digitalWrite(PIN_BUZZER, (s_buzzerFases & 1) ? HIGH : LOW);
+}
 
 // ── Tren de pulsos (cliente específico) ───────────────────────────────────────
 // Activar con  -DPULSO_TREN_VALIDADOR  en build_flags de platformio.ini.
@@ -52,6 +76,8 @@ static void set_nivel(int pin, bool activar) {
 }
 
 void pulse_output_setup() {
+  pinMode(PIN_BUZZER, OUTPUT);
+  digitalWrite(PIN_BUZZER, LOW);  // buzzer apagado en reposo
   pinMode(PIN_VMC_OUT,   OUTPUT);
   pinMode(PIN_TIMER_OUT, OUTPUT);
   digitalWrite(PIN_VMC_OUT, LOW);
@@ -67,6 +93,7 @@ void pulse_output_trigger(uint32_t duracion_ms) {
   if (modoTimer) {
     // Un nuevo evento durante la cuenta regresiva reinicia el tiempo desde cero
     // en vez de ser ignorado.
+    buzzer_beep();  // también en cada reinicio de la cuenta regresiva
     if (!s_activo) {
       s_pinActivo = PIN_TIMER_OUT;
       set_nivel(PIN_TIMER_OUT, true);
@@ -83,6 +110,7 @@ void pulse_output_trigger(uint32_t duracion_ms) {
   // contra un segundo disparo mientras dura.
   if (s_activo) return;
   g_enServicio = true;
+  buzzer_beep();
   emitir_tren();
   g_enServicio = false;
   if (g_reinicio_pendiente) {
@@ -100,13 +128,15 @@ void pulse_output_trigger(uint32_t duracion_ms) {
   s_pulsosRestantes = cantidad - 1;
   s_enGap           = false;
   set_nivel(PIN_VMC_OUT, true);
+  buzzer_beep();
   s_inicioMs   = millis();
   s_activo     = true;
   g_enServicio = true;
 }
 
 void pulse_output_poll() {
-if (!s_activo) return;
+  buzzer_poll();  // independiente del pulso: el beep puede durar más o menos que la salida
+  if (!s_activo) return;
 
   bool modoTimer = (Misvalores.Modo_Timer);
 

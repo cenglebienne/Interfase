@@ -14,3 +14,7 @@ void pulse_output_trigger(uint32_t duracion_ms = 0);
 // Gestiona el fin del pulso (y el intervalo entre pulsos del tren) por timeout.
 // Llamar desde el loop principal.
 void pulse_output_poll();
+
+// Emite BUZZER_PULSOS beeps de BUZZER_PULSO_MS en PIN_BUZZER, sin bloquear.
+// Siempre activo-ALTO, independiente de Salida_Activo_Alto. Lo apaga pulse_output_poll().
+void buzzer_beep();

@@ -113,6 +113,7 @@ void app_core_loop()
     }
     else if (!Misvalores.Modo_Timer && Misvalores.Modo_Espejo) {
       // Modo espejo: la salida ya fue controlada por el ISR; solo actualizar contadores.
+      buzzer_beep();
       Miscontadores.Cont_Parcial_Cospeles++;
       Miscontadores.Cont_Total_Cospeles++;
       Save_Flash_Contadores();
