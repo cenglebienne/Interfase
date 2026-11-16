@@ -8,6 +8,7 @@
 #include "connections.h"
 #include "http_server_app.h"
 #include "validator.h"
+#include "ota_remoto.h"
 
 // Logica habilitacion
 // En la entrada hay negacion, esto quiere decir que cuando la maquina me quiere deshabililtar el validador con un valor en alto, yo recibo un cero.
@@ -139,6 +140,7 @@ void app_core_loop()
   }
 
   pulse_output_poll();
+  ota_remoto_poll();
 
   if (g_enviar_log_Por_FTP)
   {

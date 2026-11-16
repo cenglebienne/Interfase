@@ -7,7 +7,10 @@
 #include "connections.h"
 #include "http_server_app.h"
 #include "logger.h"
+#include "config.h"
 #include <LittleFS.h>
+#include <esp_ota_ops.h>
+#include <esp_system.h>
 
 void system_init_pins() {
   // Entradas
@@ -37,6 +40,16 @@ void system_init_filesystem() {
   }
   Serial.println("LittleFS montado OK.");
   inicializarLogs();
+
+  // Diagnóstico de arranque: versión, partición en ejecución y motivo del reset.
+  // Permite verificar por log (comando F) si una actualización remota cambió
+  // de partición o si el equipo se reinició por un fallo.
+  const esp_partition_t *running = esp_ota_get_running_partition();
+  String msg = "Boot FW " + String(VERSION_FIRMWARE) +
+               " particion " + String(running ? running->label : "?") +
+               " reset " + String((int)esp_reset_reason());
+  Serial.println(msg);
+  logEvent(msg);
 }
 
 void system_init_connectivity() {
