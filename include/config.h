@@ -11,15 +11,21 @@
 #endif
 // FW_VERSION se define en platformio.ini como entero (ej: -DFW_VERSION=100).
 // constexpr permite tomar su dirección con & para enviarlo por MQTT (comando D).
+// Versión numérica que se reporta al cPanel por MQTT (comando D):
+//   normal       -> FW_VERSION       (ej: 102)
+//   con display  -> FW_VERSION * 10 + 1 (ej: 1021, se lee como "102.1").
+#ifdef CON_DISPLAY
+constexpr uint16_t VERSION_FIRMWARE = static_cast<uint16_t>(FW_VERSION * 10 + 1);
+#else
 constexpr uint16_t VERSION_FIRMWARE = static_cast<uint16_t>(FW_VERSION);
+#endif
 
 // Versión como texto para mostrar (AP "Acerca", log de arranque). El entorno
-// esp32dev_display agrega -DCON_DISPLAY y el sufijo "D" (ej: "102D").
-// MQTT y cPanel siguen usando VERSION_FIRMWARE numérico.
+// esp32dev_display agrega -DCON_DISPLAY y el sufijo ".1" (ej: "102.1").
 #define FW_STR_(x)  #x
 #define FW_XSTR_(x) FW_STR_(x)
 #ifdef CON_DISPLAY
-  #define FW_VARIANTE "D"
+  #define FW_VARIANTE ".1"
 #else
   #define FW_VARIANTE ""
 #endif

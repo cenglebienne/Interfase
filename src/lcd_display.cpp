@@ -1,4 +1,4 @@
-#ifdef CON_DISPLAY  // solo en el entorno esp32dev_display (version "D")
+#ifdef CON_DISPLAY  // solo en el entorno esp32dev_display (version "102.1")
 
 #include "lcd_display.h"
 #include <Arduino.h>
