@@ -185,3 +185,10 @@ void pulse_output_poll() {
     }
   }
 }
+
+uint32_t pulse_output_restante_ms() {
+  if (!s_activo || !Misvalores.Modo_Timer) return 0;
+  uint32_t total = (uint32_t)Misvalores.Tiempo_Programado * 1000UL;
+  uint32_t trans = millis() - s_inicioMs;
+  return (trans >= total) ? 0 : (total - trans);
+}

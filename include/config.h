@@ -13,6 +13,18 @@
 // constexpr permite tomar su dirección con & para enviarlo por MQTT (comando D).
 constexpr uint16_t VERSION_FIRMWARE = static_cast<uint16_t>(FW_VERSION);
 
+// Versión como texto para mostrar (AP "Acerca", log de arranque). El entorno
+// esp32dev_display agrega -DCON_DISPLAY y el sufijo "D" (ej: "102D").
+// MQTT y cPanel siguen usando VERSION_FIRMWARE numérico.
+#define FW_STR_(x)  #x
+#define FW_XSTR_(x) FW_STR_(x)
+#ifdef CON_DISPLAY
+  #define FW_VARIANTE "D"
+#else
+  #define FW_VARIANTE ""
+#endif
+#define FW_VERSION_STR FW_XSTR_(FW_VERSION) FW_VARIANTE
+
 // ── Filesystem ────────────────────────────────────────────────────────────────
 #define FS_LOG_FILE        "/log_actual.txt"
 #define FS_VERSION_FILE    "/versionfilesystem.txt"

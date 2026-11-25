@@ -9,6 +9,7 @@
 #include "button_led.h"
 #include "connections.h"
 #include "http_server_app.h"
+#include "lcd_display.h"
 
 static uint32_t s_apStartMs = 0;
 
@@ -24,6 +25,9 @@ void setup() {
 
   // 3. GPIOs, filesystem y conectividad
   system_init_pins();
+#ifdef CON_DISPLAY
+  lcd_display_setup();
+#endif
   system_init_filesystem();
 
   if (g_cfg.wifi_mode_ap) {
@@ -37,6 +41,9 @@ void setup() {
 
 void loop() {
   button_led_poll();
+#ifdef CON_DISPLAY
+  lcd_display_poll();
+#endif
 
   if (g_levantarAP) {
     // Modo AP: solo atender peticiones web

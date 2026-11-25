@@ -92,7 +92,7 @@ static void handleEstadoAcerca() {
 
   String json = "{";
   json += "\"Producto\":\"" PRODUCTO "\",";
-  json += "\"Version Firmware\":" + String(VERSION_FIRMWARE) + ",";
+  json += "\"Version Firmware\":\"" FW_VERSION_STR "\",";
   json += "\"Version Filesystem\":" + String(verFS);
   json += "}";
   sendJson(json);

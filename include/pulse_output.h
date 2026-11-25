@@ -18,3 +18,6 @@ void pulse_output_poll();
 // Emite BUZZER_PULSOS beeps de BUZZER_PULSO_MS en PIN_BUZZER, sin bloquear.
 // Siempre activo-ALTO, independiente de Salida_Activo_Alto. Lo apaga pulse_output_poll().
 void buzzer_beep();
+
+// Modo Timer: milisegundos que faltan para terminar el servicio (0 si no hay servicio).
+uint32_t pulse_output_restante_ms();

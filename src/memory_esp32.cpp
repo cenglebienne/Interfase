@@ -196,7 +196,7 @@ void Storage_Bootstrap() {
     Serial.println("Serie: " + String(Mientorno.EQUIPO_serie));
     Serial.println("Levantar AP: " + String(g_levantarAP));
     Serial.println ("Red Wifi"+ String(Mientorno.CLIENTE_WIFI_ssid) + " - " + String(Mientorno.CLIENTE_WIFI_clave));
-    String texto = "Firmware:" + String(VERSION_FIRMWARE);
+    String texto = "Firmware:" FW_VERSION_STR;
     Serial.println(texto);
     Serial.println("Duracion salida: " + String(Misvalores.Salida_Duracion_ms));
     Serial.println("Modo de uso: " + String(Misvalores.Modo_Timer ? "Temporizador" : "Interface"));

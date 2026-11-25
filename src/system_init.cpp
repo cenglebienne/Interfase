@@ -45,7 +45,7 @@ void system_init_filesystem() {
   // Permite verificar por log (comando F) si una actualización remota cambió
   // de partición o si el equipo se reinició por un fallo.
   const esp_partition_t *running = esp_ota_get_running_partition();
-  String msg = "Boot FW " + String(VERSION_FIRMWARE) +
+  String msg = "Boot FW " FW_VERSION_STR
                " particion " + String(running ? running->label : "?") +
                " reset " + String((int)esp_reset_reason());
   Serial.println(msg);
